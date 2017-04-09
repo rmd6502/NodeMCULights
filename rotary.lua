@@ -5,6 +5,10 @@ color = {0,0,0}
 lastpos = {0,0,0}
 reda, redb, greena, greenb, bluea, blueb = 5,4,13,12,16,14
 
+if config.publish == nil then
+  config.publish = config.subscribe
+end
+
 function handleLed(m, message)
     print("received "..message)
     m:publish("/log", "received message "..message, 0, 0)
@@ -31,9 +35,10 @@ end
 function handlePos(chan, pos)
   color[chan] = math.floor((pos - lastpos[chan])/4)
   lastpos[chan] = pos
-  m:publish(config.publish,
-    string.format("#%02x%02x%02x", color[0], color[1], color[2]),
-  0,0)
+  newcolor = string.format("#%02x%02x%02x", color[0], color[1], color[2])
+  m:publish(config.publish, newcolor, 0,0)
+  m:publish("/log", "setting "..newcolor, 0, 0)
+  print("setting "..newcolor)
 end
 
 m:on("connect", function(m)
