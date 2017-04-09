@@ -3,6 +3,7 @@ dofile("wificonfig.lua")
 m=mqtt.Client(config.clientName, 120)
 color = {0,0,0}
 lastpos = {0,0,0}
+reda, redb, greena, greenb, bluea, blueb = 5,4,13,12,16,14
 
 function handleLed(m, message)
     print("received "..message)
