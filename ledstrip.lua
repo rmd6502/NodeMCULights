@@ -1,10 +1,10 @@
 dofile("wificonfig.lua")
-red1led=1
-blue1led=6
-green1led=7
-red2led=1
-blue2led=6
-green2led=7
+red1led=1   -- GPIO5
+blue1led=6  -- GPIO12
+green1led=7 -- GPIO13
+red2led=2   -- GPIO4
+blue2led=5  -- GPIO14
+green2led=8 -- GPIO15
 
 factor = 1023 / 255
 
@@ -15,6 +15,7 @@ function handleLed(m, message)
     m:publish("/log", "received message "..message, 0, 0)
     val=tonumber(string.sub(message, 2), 16)
     print("message decoded to "..val)
+    if val == nil then return end
     b = math.floor((val % 256) * factor)
     val = math.floor(val / 256)
     g = math.floor((val % 256) * factor)
@@ -26,6 +27,9 @@ function handleLed(m, message)
     pwm.setduty(red1led, r)
     pwm.setduty(green1led, g)
     pwm.setduty(blue1led, b)
+    pwm.setduty(red2led, r)
+    pwm.setduty(green2led, g)
+    pwm.setduty(blue2led, b)
 end
 
 function dispatch(client, topic, message)
