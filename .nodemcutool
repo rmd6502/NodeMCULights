@@ -1,7 +1,0 @@
-{
-    "baudrate": "300",
-    "port": "/dev/tty.usbserial-A402ZBZR",
-    "optimize": false,
-    "compile": false,
-    "keeppath": false
-}
