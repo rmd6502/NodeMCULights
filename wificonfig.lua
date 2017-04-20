@@ -6,7 +6,7 @@ wifiConfig = {
 config = {
     clientName = "esp8266",
     mdnsName = "esp8266",
-    mqttBroker = "10.0.0.77",
+    mqttBroker = "test.mosquitto.org",
     initialFile = "ledstripJSON.lua",
-    subscribe = "/kitchen/led"
+    subscribe = "/livingroom/color"
 }
