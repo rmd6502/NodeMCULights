@@ -15,7 +15,7 @@ function handleLed(m, message)
     m:publish("/log", "received message "..message, 0, 0)
     local status, result = pcall(cjson.decode,message)
     if not status then
-      m:publish("/log", "failed to decode message message "..result, 0, 0)
+      m:publish("/log", "failed to decode message"..message.." with error "..result, 0, 0)
       return
     end  
     local val=tonumber(string.sub(result.color, 2), 16)
