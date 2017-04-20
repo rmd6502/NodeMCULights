@@ -4,9 +4,17 @@ function startup()
     else
         print("Running")
         file.close("init.lua")
-        -- the actual application is stored in 'weatherstation.lua'
-        dofile("telnet.lc")
-        print("telnet and mdns setup")
+        -- the actual application is stored in config.initialFile
+        status = pcall(dofile, "telnet.lc")
+        if not status then
+          node.compile("telnet.lua")
+          status = pcall(dofile, "telnet.lc")
+        end
+        if status then
+          print("telnet and mdns setup")
+        else
+          print("telnet failed")
+        end
         if config.initialFile ~= nil then
             dofile(config.initialFile)
         end
@@ -22,8 +30,8 @@ wifi.eventmon.register(wifi.eventmon.STA_GOT_IP, function (ipInfo)
   print("\nGot IP Address "
     ..ipInfo.IP..
     "\n")
-  --mdns.register(config.mdnsName,
-    --{hardware="Sparkfun", dscription="Weather Station"})
+  mdns.register(config.mdnsName,
+    {hardware="Sparkfun", dscription="Weather Station"})
   print("Running in 3 seconds...")
   tmr.create():alarm(3000, tmr.ALARM_SINGLE, startup)
 end)
