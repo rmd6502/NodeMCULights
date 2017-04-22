@@ -31,7 +31,7 @@ wifi.eventmon.register(wifi.eventmon.STA_GOT_IP, function (ipInfo)
     ..ipInfo.IP..
     "\n")
   mdns.register(config.mdnsName,
-    {hardware="Sparkfun", dscription="Weather Station"})
+    {hardware="Sparkfun", dscription="LED Strip Controller"})
   print("Running in 3 seconds...")
   tmr.create():alarm(3000, tmr.ALARM_SINGLE, startup)
 end)
