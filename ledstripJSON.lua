@@ -9,8 +9,13 @@ green2led=8 -- GPIO15
 factor = 1023 / 255
 
 m=mqtt.Client(config.clientName, 120)
+t=tmr.create()
 
-function handleLed(m, message)
+target =  { r=0,g=0,b=0 }
+current = { r=0,g=0,b=0 }
+inc =     { r=0,g=0,b=0 }
+
+function handleLED(m, message)
     print("received "..message)
     m:publish("/log", "received message "..message, 0, 0)
     local status, result = pcall(cjson.decode,message)
@@ -22,20 +27,40 @@ function handleLed(m, message)
     local brightness = result.brightness
     print("message decoded to "..val.." brightness "..brightness)
     if val == nil then return end
-    b = math.floor((val % 256) * factor * brightness)
+    target.b = math.floor((val % 256) * factor * brightness)
+    inc.b = (current.b - target.b)
     val = math.floor(val / 256)
-    g = math.floor((val % 256) * factor * brightness)
+    target.g = math.floor((val % 256) * factor * brightness)
+    inc.g = (current.g - target.g)
     val = math.floor(val / 256)
-    r = math.floor(val * factor * brightness)
+    target.r = math.floor(val * factor * brightness)
+    inc.r = (current.r - target.r)
+    steps=math.max(inc.r,inc.g,inc.b)
+    if steps ~= 0 then
+        inc.r = inc.r / steps
+        inc.g = inc.g / steps
+        inc.b = inc.b / steps
+        t:start()
+    end
 
-    print(config.clientName.." set color to r"..r.."g"..g.."b"..b)
-    m:publish("/log", config.clientName.." set color to r"..r.."g"..g.."b"..b, 0, 0)
-    pwm.setduty(red1led, r)
-    pwm.setduty(green1led, g)
-    pwm.setduty(blue1led, b)
-    pwm.setduty(red2led, r)
-    pwm.setduty(green2led, g)
-    pwm.setduty(blue2led, b)
+    m:publish("/log", config.clientName.." set color to r"..target.r.."g"..target.g.."b"..target.b, 0, 0)
+end
+
+function updateLED()
+    current.r = current.r + inc.r
+    current.g = current.g + inc.g
+    current.b = current.b + inc.b
+
+    pwm.setduty(red1led, math.floor(current.r))
+    pwm.setduty(green1led, math.floor(current.g))
+    pwm.setduty(blue1led, math.floor(current.b))
+    pwm.setduty(red2led, math.floor(current.r))
+    pwm.setduty(green2led, math.floor(current.g))
+    pwm.setduty(blue2led, math.floor(current.b))
+
+    if target.r ~= current.r or target.g ~= current.g or target.b ~= current.b then
+        t:start()
+    end
 end
 
 function dispatch(client, topic, message)
@@ -43,6 +68,9 @@ function dispatch(client, topic, message)
     print("Dispatching "..topic.." "..message)
     handleLed(client, message)
   end
+end
+
+function updateLED()
 end
 
 m:on("connect", function(m)
@@ -53,7 +81,10 @@ m:on("connect", function(m)
     config.clientName.." subscribed to LED updates "..config.subscribe,
     0, 0) end)
   print("subscribed to LED updates")
+  t:start()
 end)
+
+t:register(100, tmr.ALARM_SEMI, updateLED)
 
 m:on("message", dispatch)
 
